@@ -4,6 +4,8 @@ Simple *go* app to serve files from the current directory.
 
 Default port is 8888.
 
+As a simple app, it implements only very simple logging of requests.
+
 ## Build/run
 
 * Build: go build
