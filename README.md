@@ -2,7 +2,7 @@
 
 Simple *go* app to serve files from the current directory.
 
-Default port is 8888.
+Default port is chosen by the OS. Run the app with e.g. *-port=1234* to choose a specific port.
 
 As a simple app, it implements only very simple logging of requests.
 

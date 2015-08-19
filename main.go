@@ -3,25 +3,37 @@ package main
 import (
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 )
 
 func main() {
-	// allow port select from the command-line
-	listenPortPtr := flag.Int("port", 8888, "TCP port to listen on")
+	// allow port select from the command-line (0 default = OS-assigned "random" port)
+	listenPortPtr := flag.Int("port", 0, "TCP port to listen on")
 	flag.Parse()
 
 	listenString := ":" + strconv.Itoa(*listenPortPtr)
-	log.Printf("Preparing to listen on %s\n", listenString)
+	listener, err := net.Listen("tcp", listenString)
+	if err != nil {
+		log.Fatal("Listen:", err)
+	}
+	log.Printf("Listening on %s\n", listener.Addr())
 
 	// create an http.Handler that will log access then serve files from pwd
-	loggedFileServer := loggingHandler(http.FileServer(http.Dir(".")))
+	fileServerHandler := http.FileServer(http.Dir("."))
+	loggedFileServer := loggingHandler(fileServerHandler)
+
+	// register HTTP handlers (in the DefaultServeMux)
+	http.Handle("/", loggedFileServer)
 	log.Println("Logging requests, timestamped, with format:")
 	log.Println("clientIP:port method path")
 
-	// serve!
-	panic(http.ListenAndServe(listenString, loggedFileServer))
+	// serve HTTP: using our listener (and DefaultServeMux)
+	err = http.Serve(listener, nil)
+	if err != nil {
+		log.Fatal("Serve:", err)
+	}
 }
 
 // loggingHandler prints an access log line then runs the ServeHTTP func of the
